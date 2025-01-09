@@ -1,0 +1,6 @@
+from os import getenv
+
+
+SERVICE_NAME = 'notifications'
+KAFKA_BOOTSTRAP_SERVERS = getenv('KAFKA_BOOTSTRAP_SERVERS')
+SENT_ORDERS_TOPIC = getenv('SENT_ORDERS_TOPIC')

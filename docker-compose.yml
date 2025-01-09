@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: nc -z localhost 9092 || exit -1
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  orders:
+    build:
+      context: ./orders
+    ports:
+      - "8000:8000"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - NEW_ORDERS_TOPIC=new_orders
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  payment:
+    build:
+      context: ./payment
+    ports:
+      - "8001:8000"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - NEW_ORDERS_TOPIC=new_orders
+      - PAYED_ORDERS_TOPIC=payed_orders
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  shipping:
+    build:
+      context: ./shipping
+    ports:
+      - "8002:8000"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - PAYED_ORDERS_TOPIC=payed_orders
+      - SENT_ORDERS_TOPIC=sent_orders
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  notifications:
+    build:
+      context: ./notifications
+    ports:
+      - "8003:8000"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SENT_ORDERS_TOPIC=sent_orders
+    depends_on:
+      kafka:
+        condition: service_healthy

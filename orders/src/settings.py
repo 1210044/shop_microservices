@@ -1,0 +1,6 @@
+from os import getenv
+
+
+SERVICE_NAME = 'orders'
+KAFKA_BOOTSTRAP_SERVERS = getenv('KAFKA_BOOTSTRAP_SERVERS')
+NEW_ORDERS_TOPIC = getenv('NEW_ORDERS_TOPIC')
