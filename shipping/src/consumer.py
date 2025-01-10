@@ -9,6 +9,8 @@ from src.producer import send_order_in_sent_orders_topic
 consumer = AIOKafkaConsumer(
     PAYED_ORDERS_TOPIC,
     bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
+    auto_offset_reset='earliest', 
+    auto_commit_interval_ms=False,
     group_id='shipping_group',
 )
 
@@ -19,6 +21,7 @@ async def consume_messages():
             order = json.loads(msg.value.decode('utf-8'))
             logger.info(f'Received order №{order['id']} for shipping')
             await shipping_order(order)
+            await consumer.commit()
     except Exception as e:
         logger.error(str(e))
 
